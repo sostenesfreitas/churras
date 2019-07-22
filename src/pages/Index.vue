@@ -1,7 +1,8 @@
+/* eslint-disable */
 <template>
   <q-page class="flex flex-center t">
     <div class="bg-text flex column flex-center">
-      <form @submit.prevent="simulateSubmit" class="q-pa-md">
+      <form @submit.prevent="submit" class="q-pa-md">
         <h2>CHURRASCOMETRO</h2>
         <div class="flex row">
           <q-input
@@ -41,45 +42,85 @@
         </div>
       </form>
       <div class="flex column">
-        <p v-show="qtd">Quantidade de carnes: {{qtd}} KG</p>
-        <p v-show="qtdLata">Quantidade de Latas: {{qtdLata}} latas</p>
+        <div class="flex column">
+          <p v-show="qtd">Quantidade de carnes: {{qtd}} KG</p>
+          <p v-show="qtdLata">Quantidade de Latas: {{qtdLata}} latas</p>
+        </div>
+        <div v-show="t">
+          <q-page-container>
+            <q-list class="rounded-borders">
+              <q-expansion-item expand-separator icon="perm_identity" label="carnes">
+                <q-card>
+                  <q-markup-table>
+                    <thead>
+                      <tr>
+                        <th class="text-left">nome</th>
+                        <th class="text-right">preco</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(carne, index) in carnes" :key="index">
+                        <td class="text-left">
+                          <a
+                            :href="carne.link"
+                            target="_blank"
+                            class="text-white"
+                            style="text-decoration: none"
+                          >{{carne.nome}}</a>
+                        </td>
+                        <td class="text-right">{{carne.preco}}</td>
+                      </tr>
+                    </tbody>
+                  </q-markup-table>
+                </q-card>
+              </q-expansion-item>
+            </q-list>
+          </q-page-container>
+        </div>
       </div>
     </div>
   </q-page>
 </template>
 <script>
+import axios from "axios";
 export default {
-  name: 'PageIndex',
+  name: "PageIndex",
   data() {
     return {
-      qtd: '',
-      qtdLata: '',
-      qtdPessoa: '',
-      test: '',
+      t: false,
+      qtd: "",
+      qtdLata: "",
+      qtdPessoa: "",
+      test: "",
       carneKgH: 500,
       carneKgM: 400,
       lataH: 8,
       lataM: 5,
       redModel: true,
-      submitting: false
-    }
+      submitting: false,
+      carnes: []
+    };
   },
 
   methods: {
-    simulateSubmit() {
-      this.submitting = true
+    submit() {
+      this.submitting = true;
       setTimeout(() => {
-        let q = parseInt(this.qtdPessoa)
+        axios
+          .get("http://localhost:8080/hello/")
+          .then(response => (this.carnes = response.data));
+        let q = parseInt(this.qtdPessoa);
         this.qtd = this.redModel
           ? q * (this.carneKgH / 1000)
-          : q * (this.carneKgM / 1000)
-        this.qtdLata = this.redModel ? q * this.lataH : q * this.lataM
-        this.qtdPessoa = ''
-        this.submitting = false
-      }, 1000)
+          : q * (this.carneKgM / 1000);
+        this.qtdLata = this.redModel ? q * this.lataH : q * this.lataM;
+        this.qtdPessoa = "";
+        this.submitting = false;
+        this.t = true;
+      }, 5000);
     }
   }
-}
+};
 </script>
 <style>
 * {
@@ -96,10 +137,8 @@ export default {
   color: white;
   font-weight: bold;
   border: 1px solid #f1f1f1;
-  position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
   z-index: 2;
   width: 55%;
   padding: 40px;
